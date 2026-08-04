@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Catalog, Category, SlidePlan } from "../types";
+import type { Catalog, Category, Product, SlidePlan } from "../types";
 import { api } from "../api/client";
 
 interface CatalogState {
@@ -17,6 +17,8 @@ interface CatalogState {
   reorderCategories: (orderedIds: number[]) => Promise<void>;
   reorderProducts: (items: { id: number; category_id: number; order_index: number }[]) => Promise<void>;
   removeProduct: (id: number) => Promise<void>;
+  updateProduct: (id: number, payload: Partial<Product> & { category_id?: number }) => Promise<void>;
+  replaceProductImage: (id: number, file: File) => Promise<void>;
 }
 
 export const useCatalogStore = create<CatalogState>((set, get) => ({
@@ -85,6 +87,16 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
 
   removeProduct: async (id) => {
     await api.deleteProduct(id);
+    await get().refreshPreview();
+  },
+
+  updateProduct: async (id, payload) => {
+    await api.updateProduct(id, payload);
+    await get().refreshPreview();
+  },
+
+  replaceProductImage: async (id, file) => {
+    await api.replaceProductImage(id, file);
     await get().refreshPreview();
   },
 }));

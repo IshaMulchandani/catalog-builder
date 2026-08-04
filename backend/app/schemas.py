@@ -23,6 +23,7 @@ class CatalogUpdate(BaseModel):
     accent_color: Optional[str] = None
     currency_symbol: Optional[str] = None
     include_cover: Optional[bool] = None
+    logo_path: Optional[str] = None  # sending explicit null clears the logo
     logo_x: Optional[float] = None
     logo_y: Optional[float] = None
     logo_w: Optional[float] = None
@@ -48,6 +49,7 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     price: Optional[float] = None
     category_id: Optional[int] = None
+    included: Optional[bool] = None
 
 
 class ProductOut(ProductBase):
@@ -56,6 +58,7 @@ class ProductOut(ProductBase):
     category_id: int
     image_path: Optional[str] = None
     order_index: int
+    included: bool = True
 
 
 # ---------- Category ----------

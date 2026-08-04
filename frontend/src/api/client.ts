@@ -1,5 +1,5 @@
 import type {
-  Catalog, Category, SlidePlan, BulkImportResult,
+  Catalog, Category, Product, SlidePlan, BulkImportResult,
 } from "../types";
 
 const BASE = "/api";
@@ -45,6 +45,17 @@ export const api = {
 
   createProduct: (form: FormData) =>
     request("/products", { method: "POST", body: form }),
+  updateProduct: (id: number, payload: Partial<Product> & { category_id?: number }) =>
+    request<Product>(`/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+  replaceProductImage: (id: number, file: File) => {
+    const form = new FormData();
+    form.append("image", file);
+    return request<Product>(`/products/${id}/image`, { method: "POST", body: form });
+  },
   deleteProduct: (id: number) => request<void>(`/products/${id}`, { method: "DELETE" }),
   reorderProducts: (items: { id: number; category_id: number; order_index: number }[]) =>
     request<void>("/products/reorder/bulk", {

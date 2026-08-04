@@ -50,6 +50,17 @@ def update_product(product_id: int, payload: schemas.ProductUpdate, db: Session 
     return product
 
 
+@router.post("/{product_id}/image", response_model=schemas.ProductOut)
+def replace_product_image(product_id: int, image: UploadFile = File(...), db: Session = Depends(get_db)):
+    product = db.query(models.Product).get(product_id)
+    if not product:
+        raise HTTPException(404, "Product not found")
+    product.image_path = save_uploaded_image(image.file.read())
+    db.commit()
+    db.refresh(product)
+    return product
+
+
 @router.delete("/{product_id}")
 def delete_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(models.Product).get(product_id)

@@ -165,7 +165,9 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
 
         elif slide_desc.type == "category":
             title = slide_desc.title or ""
-            _add_text(slide, Inches(0.6), Inches(0.4), Inches(11), Inches(0.7), title, 28, bold=True)
+            # Raised closer to the top edge (was y=0.4) to open up breathing room
+            # between the title and the product cards below it.
+            _add_text(slide, Inches(0.6), Inches(0.22), Inches(11), Inches(0.7), title, 28, bold=True)
 
             # 2x2 grid of horizontal cards: image on the left, details on the right
             products = slide_desc.products or []
@@ -197,18 +199,21 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
                             img_w - border_inset, cell_h - 2 * border_inset,
                         )
 
+                # Category name is already the slide title, so it isn't repeated
+                # per-card — the brand/product name is now the card's headline,
+                # in the accent color, taking the vertical space the category
+                # eyebrow used to occupy.
                 text_x = x + text_left_offset
-                _add_text(slide, text_x, y + Inches(0.12), text_w, Inches(0.3),
-                           title, 12, bold=True, color=accent_rgb)
-                _add_text(slide, text_x, y + Inches(0.45), text_w, Inches(0.4), product.name, 16)
+                _add_text(slide, text_x, y + Inches(0.18), text_w, Inches(0.4),
+                           product.name, 18, bold=True, color=accent_rgb)
 
-                divider = slide.shapes.add_shape(1, text_x, y + Inches(0.95), Inches(0.35), Pt(1.5))
+                divider = slide.shapes.add_shape(1, text_x, y + Inches(0.68), Inches(0.35), Pt(1.5))
                 divider.fill.solid()
                 divider.fill.fore_color.rgb = RGBColor(0xDD, 0xDD, 0xDD)
                 divider.line.fill.background()
                 divider.shadow.inherit = False
 
-                _add_text(slide, text_x, y + Inches(1.1), text_w, Inches(0.9),
+                _add_text(slide, text_x, y + Inches(0.85), text_w, Inches(1.1),
                            product.description, 12, color=RGBColor(0x88, 0x88, 0x88))
                 _add_text(slide, text_x, y + cell_h - Inches(0.55), text_w, Inches(0.4),
                            f"{currency_symbol}{product.price:,.2f}", 18, bold=True)

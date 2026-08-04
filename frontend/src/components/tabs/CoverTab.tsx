@@ -30,6 +30,11 @@ export default function CoverTab() {
     await useCatalogStore.getState().loadAll();
   };
 
+  const onLogoRemove = () => {
+    setCatalogLocal({ logo_path: null });
+    updateCatalog({ logo_path: null });
+  };
+
   return (
     <div className="tab-panel">
       <h2>Cover Slide</h2>
@@ -70,9 +75,14 @@ export default function CoverTab() {
         {catalog?.logo_path ? "Replace logo" : "Upload logo"}
       </label>
       {catalog?.logo_path && (
-        <div className="muted small" style={{ marginTop: 6 }}>
-          Drag or resize the logo directly on the cover slide preview →
-        </div>
+        <>
+          <button className="text-btn" onClick={onLogoRemove} style={{ marginTop: 8 }}>
+            Remove logo
+          </button>
+          <div className="muted small" style={{ marginTop: 6 }}>
+            Drag or resize the logo directly on the cover slide preview →
+          </div>
+        </>
       )}
 
       <label className="field-label">Accent colour</label>

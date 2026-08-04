@@ -31,7 +31,7 @@ git push -u origin main
 
 1. Go to [neon.tech](https://neon.tech), sign up free (no card required), create a project.
 2. On the project dashboard, copy the **connection string** — it looks like `postgresql://user:password@ep-xxxx.region.aws.neon.tech/dbname?sslmode=require`.
-3. Save this — you'll paste it into Render as `DATABASE_URL` in step 4.
+3. Save this somewhere private (a password manager, not this file) — you'll paste it into Render as `DATABASE_URL` in step 4. Don't commit real credentials into this repo, even in a comment.
 
 ## 3. Create image storage (Cloudflare R2)
 

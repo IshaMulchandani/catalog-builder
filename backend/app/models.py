@@ -49,5 +49,9 @@ class Product(Base):
     description = Column(String, default="")
     price = Column(Float, default=0.0)
     order_index = Column(Integer, default=0)
+    # Soft include/exclude toggle from the List tab — excluded products stay
+    # in the DB (re-includable anytime) but are left out of the slide plan
+    # (preview + export) while unchecked.
+    included = Column(Boolean, default=True)
 
     category = relationship("Category", back_populates="products")

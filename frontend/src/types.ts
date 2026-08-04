@@ -21,6 +21,7 @@ export interface Product {
   description: string;
   price: number;
   order_index: number;
+  included: boolean;
 }
 
 export interface Category {

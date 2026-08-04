@@ -97,8 +97,7 @@ export default function Preview() {
                     <div className="product-card-placeholder" />
                   )}
                   <div className="product-card-body">
-                    <div className="product-card-eyebrow" style={{ color: accent }}>{slide.title}</div>
-                    <div className="product-card-name">{p.name}</div>
+                    <div className="product-card-name" style={{ color: accent }}>{p.name}</div>
                     <div className="product-card-divider" />
                     <div className="product-card-desc">{p.description}</div>
                     <div className="product-card-price">{currency}{p.price.toFixed(2)}</div>

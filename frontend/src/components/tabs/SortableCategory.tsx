@@ -2,10 +2,15 @@ import type { CSSProperties } from "react";
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDroppable } from "@dnd-kit/core";
-import type { Category } from "../../types";
+import type { Category, Product } from "../../types";
 import SortableProduct from "./SortableProduct";
 
-export default function SortableCategory({ category }: { category: Category }) {
+interface Props {
+  category: Category;
+  onEditProduct: (product: Product) => void;
+}
+
+export default function SortableCategory({ category, onEditProduct }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `category-${category.id}`,
     data: { type: "category", category },
@@ -36,7 +41,7 @@ export default function SortableCategory({ category }: { category: Category }) {
           {category.products.length === 0 && (
             <div className="muted small empty-drop">Drag products here</div>
           )}
-          {category.products.map((p) => <SortableProduct key={p.id} product={p} />)}
+          {category.products.map((p) => <SortableProduct key={p.id} product={p} onEdit={onEditProduct} />)}
         </SortableContext>
       </div>
     </div>

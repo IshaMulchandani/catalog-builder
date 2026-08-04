@@ -39,6 +39,9 @@ _ADDITIVE_COLUMNS = {
         "logo_w": "REAL DEFAULT 0.18",
         "logo_h": "REAL DEFAULT 0.18",
     },
+    "products": {
+        "included": "BOOLEAN DEFAULT TRUE",
+    },
 }
 
 

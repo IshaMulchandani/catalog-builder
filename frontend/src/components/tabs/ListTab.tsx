@@ -1,15 +1,34 @@
 import { useState } from "react";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent,
-  PointerSensor, closestCenter, useSensor, useSensors,
+  PointerSensor, closestCenter, pointerWithin, useSensor, useSensors,
+  type CollisionDetection,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import type { Product } from "../../types";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import SortableCategory from "./SortableCategory";
+import EditProductModal from "./EditProductModal";
+
+// Plain closestCenter evaluates every registered droppable in the whole tab
+// flatly — every category header, every category drop-zone, and every
+// product row across every category — and matches whichever one's center is
+// geometrically nearest. In a scrollable multi-category list that regularly
+// picks a category the cursor isn't actually over, which is exactly the
+// "dropped into a random category" bug. pointerWithin only matches
+// droppables the cursor is literally inside, matching what the user sees;
+// closestCenter is kept only as a fallback for edge cases (e.g. dropping
+// past the very end of the last category, where the pointer may not land
+// inside any rect).
+const collisionDetectionStrategy: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  return pointerCollisions.length > 0 ? pointerCollisions : closestCenter(args);
+};
 
 export default function ListTab() {
   const { categories, reorderCategories, reorderProducts } = useCatalogStore();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const totalProducts = categories.reduce((sum, c) => sum + c.products.length, 0);
@@ -61,6 +80,11 @@ export default function ListTab() {
         targetCategoryId = over.data.current?.categoryId;
         const targetCategory = categories.find((c) => c.id === targetCategoryId);
         targetIndex = targetCategory?.products.length ?? 0;
+      } else if (overType === "category") {
+        // Dropped directly on a category's header row (not its product list
+        // area) — treat it the same as dropping into that category, at the top.
+        targetCategoryId = over.data.current?.category?.id ?? null;
+        targetIndex = 0;
       }
 
       if (targetCategoryId == null) return;
@@ -92,15 +116,20 @@ export default function ListTab() {
 
   return (
     <div className="tab-panel">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+      <DndContext sensors={sensors} collisionDetection={collisionDetectionStrategy} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <SortableContext items={categories.map((c) => `category-${c.id}`)} strategy={verticalListSortingStrategy}>
-          {categories.map((c) => <SortableCategory key={c.id} category={c} />)}
+          {categories.map((c) => (
+            <SortableCategory key={c.id} category={c} onEditProduct={setEditingProduct} />
+          ))}
         </SortableContext>
         <DragOverlay>{activeId ? <div className="drag-ghost" /> : null}</DragOverlay>
       </DndContext>
       <div className="muted small" style={{ marginTop: 12 }}>
         {categories.length} categories · {totalProducts} products total
       </div>
+      {editingProduct && (
+        <EditProductModal product={editingProduct} onClose={() => setEditingProduct(null)} />
+      )}
     </div>
   );
 }
