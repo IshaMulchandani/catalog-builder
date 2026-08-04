@@ -37,6 +37,7 @@ export interface SlideProduct {
   description: string;
   price: number;
   image_path: string | null;
+  is_new: boolean;
 }
 
 export interface Slide {

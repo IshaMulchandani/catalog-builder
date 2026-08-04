@@ -41,6 +41,11 @@ _ADDITIVE_COLUMNS = {
     },
     "products": {
         "included": "BOOLEAN DEFAULT TRUE",
+        # Existing rows (created before this column existed) are backfilled
+        # with a far-past date rather than "now", so products that already
+        # existed don't suddenly all show a "NEW" badge after this migration
+        # runs. New INSERTs still get the model's server_default=func.now().
+        "created_at": "TIMESTAMP DEFAULT '2000-01-01 00:00:00'",
     },
 }
 

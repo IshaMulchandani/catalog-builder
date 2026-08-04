@@ -91,6 +91,9 @@ export default function Preview() {
             <div className="product-grid">
               {(slide.products ?? []).map((p) => (
                 <div key={p.id} className="product-card">
+                  {p.is_new && (
+                    <div className="product-card-badge" style={{ background: accent }}>NEW</div>
+                  )}
                   {p.image_path ? (
                     <img src={resolveImageUrl(p.image_path)} alt={p.name} />
                   ) : (

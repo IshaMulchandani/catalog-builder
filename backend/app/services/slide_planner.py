@@ -3,12 +3,24 @@
 Both the live preview (GET /preview) and the pptx exporter call build_slide_plan()
 so the on-screen preview and the downloaded file can never drift apart.
 """
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 from ..models import Catalog, Category, Product
 from ..schemas import Slide, SlidePlan, SlideProduct
 
 PRODUCTS_PER_SLIDE = 4
+NEW_BADGE_DAYS = 60
+
+
+def _is_new(product: Product) -> bool:
+    """True if the product was created within the last NEW_BADGE_DAYS days."""
+    created = product.created_at
+    if created is None:
+        return False
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - created <= timedelta(days=NEW_BADGE_DAYS)
 
 
 def _group_by_brand(products: List[Product]) -> List[Product]:
@@ -79,6 +91,7 @@ def build_slide_plan(catalog: Catalog, categories: List[Category]) -> SlidePlan:
                     SlideProduct(
                         id=p.id, name=p.name, description=p.description,
                         price=p.price, image_path=p.image_path,
+                        is_new=_is_new(p),
                     )
                     for p in chunk
                 ],

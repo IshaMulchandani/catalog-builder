@@ -126,6 +126,7 @@ class SlideProduct(BaseModel):
     description: str
     price: float
     image_path: Optional[str] = None
+    is_new: bool = False
 
 
 class Slide(BaseModel):

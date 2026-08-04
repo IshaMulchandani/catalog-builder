@@ -7,7 +7,8 @@ from PIL import Image
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.shapes import MSO_SHAPE
 
 from ..schemas import SlidePlan
 from .image_service import UPLOAD_DIR, is_remote_url
@@ -102,6 +103,39 @@ def _add_contain_image(slide, img_bytes: bytes, x, y, w, h):
     draw_x = x + (w - draw_w) // 2
     draw_y = y + (h - draw_h) // 2
     return slide.shapes.add_picture(BytesIO(img_bytes), draw_x, draw_y, width=draw_w, height=draw_h)
+
+
+def _add_new_badge(slide, card_x, card_y, card_w, accent_rgb: RGBColor):
+    """Small pill badge pinned to the top-right corner of a product card,
+    marking products created within the last NEW_BADGE_DAYS days."""
+    badge_w = Inches(0.62)
+    badge_h = Inches(0.28)
+    inset = Inches(0.08)
+    bx = card_x + card_w - badge_w - inset
+    by = card_y + inset
+
+    badge = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, bx, by, badge_w, badge_h)
+    badge.adjustments[0] = 0.5  # fully rounded ends (pill shape)
+    badge.fill.solid()
+    badge.fill.fore_color.rgb = accent_rgb
+    badge.line.fill.background()
+    badge.shadow.inherit = False
+
+    tf = badge.text_frame
+    tf.word_wrap = False
+    tf.margin_left = 0
+    tf.margin_right = 0
+    tf.margin_top = 0
+    tf.margin_bottom = 0
+    tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+    p = tf.paragraphs[0]
+    p.alignment = PP_ALIGN.CENTER
+    run = p.add_run()
+    run.text = "NEW"
+    run.font.size = Pt(10)
+    run.font.bold = True
+    run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+    return badge
 
 
 def _add_accent_bar(slide, accent_rgb: RGBColor):
@@ -217,5 +251,8 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
                            product.description, 12, color=RGBColor(0x88, 0x88, 0x88))
                 _add_text(slide, text_x, y + cell_h - Inches(0.55), text_w, Inches(0.4),
                            f"{currency_symbol}{product.price:,.2f}", 18, bold=True)
+
+                if getattr(product, "is_new", False):
+                    _add_new_badge(slide, x, y, cell_w, accent_rgb)
 
     return prs

@@ -53,5 +53,8 @@ class Product(Base):
     # in the DB (re-includable anytime) but are left out of the slide plan
     # (preview + export) while unchecked.
     included = Column(Boolean, default=True)
+    # Stamped at insert time (DB-side default), used to compute the "NEW"
+    # badge — see slide_planner.NEW_BADGE_DAYS.
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     category = relationship("Category", back_populates="products")
