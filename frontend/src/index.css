@@ -261,8 +261,16 @@ textarea { min-height: 70px; resize: vertical; }
 .slide-index h2 { font-size: 26px; margin-bottom: 20px; }
 .index-row { font-size: 18px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
 
-.slide-category h2 { font-size: 24px; margin-top: 0; margin-bottom: 32px; }
-.product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.slide-category { display: flex; flex-direction: column; height: 100%; }
+.slide-category h2 { font-size: 24px; margin-top: 0; margin-bottom: 32px; flex-shrink: 0; }
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
 
 .product-card {
   position: relative;
@@ -270,7 +278,8 @@ textarea { min-height: 70px; resize: vertical; }
   border: 1px solid #e5e5e5;
   border-radius: 8px;
   overflow: hidden;
-  height: 150px;
+  height: 100%;
+  min-height: 0;
 }
 .product-card-badge {
   position: absolute;
@@ -297,11 +306,26 @@ textarea { min-height: 70px; resize: vertical; }
   padding: 12px 14px;
   flex: 1;
   min-width: 0;
+  min-height: 0;
 }
-.product-card-name { font-size: 17px; font-weight: 700; }
+.product-card-name {
+  font-size: 17px;
+  font-weight: 700;
+  padding-right: 50px; /* keeps long names clear of the top-right NEW badge */
+  flex-shrink: 0;
+}
 .product-card-divider { width: 28px; height: 1px; background: #ddd; margin: 8px 0; flex-shrink: 0; }
-.product-card-desc { font-size: 12px; color: #888; flex: 1; }
-.product-card-price { font-size: 18px; font-weight: 700; color: #111; margin-top: 6px; }
+.product-card-desc {
+  font-size: 12px;
+  color: #888;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.product-card-price { font-size: 18px; font-weight: 700; color: #111; margin-top: 6px; flex-shrink: 0; }
 
 .slide-nav { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 12px; }
 .slide-nav button { border: 1px solid #ddd; background: #fff; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; }
