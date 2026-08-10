@@ -50,6 +50,11 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     category_id: Optional[int] = None
     included: Optional[bool] = None
+    # Manual "NEW" badge pin from the Edit Product modal. True/False forces
+    # it on/off; sending explicit null clears the override back to the
+    # automatic 60-day rule (same "explicit null clears it" convention as
+    # Catalog.logo_path).
+    is_new_override: Optional[bool] = None
 
 
 class ProductOut(ProductBase):
@@ -59,6 +64,8 @@ class ProductOut(ProductBase):
     image_path: Optional[str] = None
     order_index: int
     included: bool = True
+    is_new: bool = False
+    is_new_override: Optional[bool] = None
 
 
 # ---------- Category ----------

@@ -22,6 +22,12 @@ export interface Product {
   price: number;
   order_index: number;
   included: boolean;
+  // Effective "shows the NEW badge right now" (auto rule, resolved with any
+  // manual override already applied) — for display only.
+  is_new: boolean;
+  // The manual pin itself: true/false = forced on/off, null = no override,
+  // follows the automatic 60-day rule.
+  is_new_override: boolean | null;
 }
 
 export interface Category {

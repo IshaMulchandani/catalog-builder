@@ -48,6 +48,11 @@ _ADDITIVE_COLUMNS = {
         # added. New rows are never NULL because the model always sends an
         # explicit value at insert time.
         "created_at": "TIMESTAMP",
+        # Manual "NEW" badge override from the Edit Product modal. Nullable
+        # with no DDL default — NULL is the correct value for every existing
+        # row (old and new alike): it means "no manual choice made, follow
+        # the automatic 60-day rule."
+        "is_new_override": "BOOLEAN",
     },
 }
 

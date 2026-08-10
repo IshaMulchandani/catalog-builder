@@ -19,6 +19,18 @@ export default function EditProductModal({ product, onClose }: Props) {
   const [price, setPrice] = useState(String(product.price));
   const [saving, setSaving] = useState(false);
 
+  // Manual "NEW" badge pin: true/false = forced on/off, null = no override
+  // (follows the automatic 60-day-from-creation rule). Kept separate from
+  // originalOverride so Save only sends this field when it's actually been
+  // changed from what's stored — every other field in this modal is always
+  // sent, but this one shouldn't silently pin the badge state just because
+  // the user fixed a typo in the price while it happened to be showing.
+  const originalOverride = product.is_new_override ?? null;
+  const [newOverride, setNewOverride] = useState<boolean | null>(originalOverride);
+  // What the checkbox shows: the pending local choice if one's been made,
+  // otherwise the effective state already computed by the backend.
+  const badgeChecked = newOverride === null ? product.is_new : newOverride;
+
   const onSave = async () => {
     if (!brand.trim() || !category.trim()) return;
     setSaving(true);
@@ -31,12 +43,17 @@ export default function EditProductModal({ product, onClose }: Props) {
       }
       if (!cat) throw new Error("Could not resolve category");
 
-      await updateProduct(product.id, {
+      const payload: Parameters<typeof updateProduct>[1] = {
         name: brand.trim(),
         description: description.trim(),
         price: parseFloat(price) || 0,
         category_id: cat.id,
-      });
+      };
+      if (newOverride !== originalOverride) {
+        payload.is_new_override = newOverride;
+      }
+
+      await updateProduct(product.id, payload);
       if (image) {
         await replaceProductImage(product.id, image);
       }
@@ -82,6 +99,32 @@ export default function EditProductModal({ product, onClose }: Props) {
 
         <label className="field-label">Price</label>
         <input value={price} onChange={(e) => setPrice(e.target.value)} />
+
+        <div className="row toggle-row">
+          <div>
+            <div className="field-label" style={{ margin: 0 }}>New product</div>
+            <div className="muted small">
+              {newOverride === null
+                ? "Automatic — shows for 60 days from when it was added."
+                : newOverride
+                  ? "Manually forced on — always shows the badge."
+                  : "Manually forced off — never shows the badge."}
+            </div>
+          </div>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={badgeChecked}
+              onChange={(e) => setNewOverride(e.target.checked)}
+            />
+            <span className="slider" />
+          </label>
+        </div>
+        {newOverride !== null && (
+          <button className="text-btn" onClick={() => setNewOverride(null)} style={{ marginTop: 6 }}>
+            Reset to automatic (60 days)
+          </button>
+        )}
 
         <div className="modal-actions">
           <button className="secondary-btn" onClick={onClose} disabled={saving}>Cancel</button>

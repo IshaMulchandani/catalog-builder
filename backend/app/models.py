@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from .badge_utils import compute_is_new
 from .database import Base
 
 
@@ -56,7 +57,7 @@ class Product(Base):
     # (preview + export) while unchecked.
     included = Column(Boolean, default=True)
     # Stamped at insert time, used to compute the "NEW" badge — see
-    # slide_planner.NEW_BADGE_DAYS. Uses a Python-side default (evaluated by
+    # badge_utils.compute_is_new. Uses a Python-side default (evaluated by
     # SQLAlchemy and sent explicitly in the INSERT) rather than
     # server_default, because server_default only takes effect on a brand
     # new CREATE TABLE — on a DB that already existed before this column was
@@ -64,5 +65,14 @@ class Product(Base):
     # standing column default, which would silently win over server_default
     # for every future insert otherwise.
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    # Manual pin from the Edit Product modal's "New product" checkbox:
+    # True/False forces the NEW badge on/off regardless of age; NULL (the
+    # default for every product, old and new) means "no manual choice made —
+    # follow the automatic 60-day rule."
+    is_new_override = Column(Boolean, nullable=True, default=None)
 
     category = relationship("Category", back_populates="products")
+
+    @property
+    def is_new(self) -> bool:
+        return compute_is_new(self.created_at, self.is_new_override)
