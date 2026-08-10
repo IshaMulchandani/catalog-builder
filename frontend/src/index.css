@@ -316,14 +316,15 @@ textarea { min-height: 70px; resize: vertical; }
 }
 .product-card-divider { width: 28px; height: 1px; background: #ddd; margin: 8px 0; flex-shrink: 0; }
 .product-card-desc {
+  /* font-size is set inline by ProductCard's shrink-to-fit logic, which
+     needs scrollHeight to reflect the text's true (unclamped) height to
+     measure overflow correctly — so no -webkit-line-clamp here. */
   font-size: 12px;
+  line-height: 1.35;
   color: #888;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
 }
 .product-card-price { font-size: 18px; font-weight: 700; color: #111; margin-top: 6px; flex-shrink: 0; }
 

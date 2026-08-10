@@ -7,7 +7,7 @@ from PIL import Image
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_AUTO_SIZE
 from pptx.enum.shapes import MSO_SHAPE
 
 from ..schemas import SlidePlan
@@ -145,10 +145,17 @@ def _add_accent_bar(slide, accent_rgb: RGBColor):
     bar.line.fill.background()
 
 
-def _add_text(slide, left, top, width, height, text, size, bold=False, color=None, align=PP_ALIGN.LEFT):
+def _add_text(slide, left, top, width, height, text, size, bold=False, color=None, align=PP_ALIGN.LEFT, auto_fit=False):
     box = slide.shapes.add_textbox(left, top, width, height)
     tf = box.text_frame
     tf.word_wrap = True
+    if auto_fit:
+        # Tells PowerPoint (and LibreOffice, used for PDF export) to shrink
+        # the font to fit this box when the file is opened/rendered — the
+        # same "shrink text on overflow" behavior the web preview does live,
+        # so long product descriptions never get truncated in the export
+        # either, no matter how long they are.
+        tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
     p = tf.paragraphs[0]
     p.alignment = align
     run = p.add_run()
@@ -248,7 +255,7 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
                 divider.shadow.inherit = False
 
                 _add_text(slide, text_x, y + Inches(0.85), text_w, Inches(1.1),
-                           product.description, 12, color=RGBColor(0x88, 0x88, 0x88))
+                           product.description, 12, color=RGBColor(0x88, 0x88, 0x88), auto_fit=True)
                 _add_text(slide, text_x, y + cell_h - Inches(0.55), text_w, Inches(0.4),
                            f"{currency_symbol}{product.price:,.2f}", 18, bold=True)
 

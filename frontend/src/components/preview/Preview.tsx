@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import LogoOverlay from "./LogoOverlay";
+import ProductCard from "./ProductCard";
 import { resolveImageUrl } from "../../utils";
 
 const DEFAULT_LOGO_TRANSFORM = { x: 0.75, y: 0.06, w: 0.18, h: 0.18 };
@@ -90,22 +91,7 @@ export default function Preview() {
             <h2>{slide.title}</h2>
             <div className="product-grid">
               {(slide.products ?? []).map((p) => (
-                <div key={p.id} className="product-card">
-                  {p.is_new && (
-                    <div className="product-card-badge" style={{ background: accent }}>NEW</div>
-                  )}
-                  {p.image_path ? (
-                    <img src={resolveImageUrl(p.image_path)} alt={p.name} />
-                  ) : (
-                    <div className="product-card-placeholder" />
-                  )}
-                  <div className="product-card-body">
-                    <div className="product-card-name" style={{ color: accent }}>{p.name}</div>
-                    <div className="product-card-divider" />
-                    <div className="product-card-desc">{p.description}</div>
-                    <div className="product-card-price">{currency}{p.price.toFixed(2)}</div>
-                  </div>
-                </div>
+                <ProductCard key={p.id} product={p} accent={accent} currency={currency} />
               ))}
             </div>
           </div>
