@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -53,8 +55,14 @@ class Product(Base):
     # in the DB (re-includable anytime) but are left out of the slide plan
     # (preview + export) while unchecked.
     included = Column(Boolean, default=True)
-    # Stamped at insert time (DB-side default), used to compute the "NEW"
-    # badge — see slide_planner.NEW_BADGE_DAYS.
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Stamped at insert time, used to compute the "NEW" badge — see
+    # slide_planner.NEW_BADGE_DAYS. Uses a Python-side default (evaluated by
+    # SQLAlchemy and sent explicitly in the INSERT) rather than
+    # server_default, because server_default only takes effect on a brand
+    # new CREATE TABLE — on a DB that already existed before this column was
+    # added, the additive migration's ALTER TABLE ADD COLUMN sets its own
+    # standing column default, which would silently win over server_default
+    # for every future insert otherwise.
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     category = relationship("Category", back_populates="products")

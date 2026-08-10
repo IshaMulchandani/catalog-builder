@@ -41,11 +41,13 @@ _ADDITIVE_COLUMNS = {
     },
     "products": {
         "included": "BOOLEAN DEFAULT TRUE",
-        # Existing rows (created before this column existed) are backfilled
-        # with a far-past date rather than "now", so products that already
-        # existed don't suddenly all show a "NEW" badge after this migration
-        # runs. New INSERTs still get the model's server_default=func.now().
-        "created_at": "TIMESTAMP DEFAULT '2000-01-01 00:00:00'",
+        # No DB-level default here on purpose — see the comment on
+        # Product.created_at in models.py. This column is added nullable,
+        # and legacy rows (predating the column) are backfilled with a
+        # far-past date separately below, once, right after the column is
+        # added. New rows are never NULL because the model always sends an
+        # explicit value at insert time.
+        "created_at": "TIMESTAMP",
     },
 }
 
@@ -61,3 +63,13 @@ def run_additive_migrations():
             for name, ddl in columns.items():
                 if name not in existing_columns:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
+
+        # Backfill only rows that genuinely predate the created_at column
+        # (still NULL) with a far-past date, so they don't show a "NEW"
+        # badge. Safe to run on every startup — the app always supplies
+        # created_at explicitly on insert, so no row created going forward
+        # is ever NULL here.
+        if "products" in existing_tables:
+            conn.execute(text(
+                "UPDATE products SET created_at = '2000-01-01 00:00:00' WHERE created_at IS NULL"
+            ))
