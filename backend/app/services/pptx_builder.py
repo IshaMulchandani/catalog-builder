@@ -22,6 +22,39 @@ def _hex_to_rgb(hex_color: str) -> RGBColor:
     return RGBColor(int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16))
 
 
+# How much darker the "Model" subtitle color is than the accent color it's
+# derived from — shared constant with the web preview's darkenHex() so both
+# renderers land on the same shade. 0.25 = each channel scaled to 75% of its
+# original value (toward black).
+MODEL_DARKEN_AMOUNT = 0.25
+
+
+def _darken_rgb(rgb: RGBColor, amount: float = MODEL_DARKEN_AMOUNT) -> RGBColor:
+    r, g, b = rgb[0], rgb[1], rgb[2]
+    scale = 1 - amount
+    return RGBColor(int(r * scale), int(g * scale), int(b * scale))
+
+
+EMU_PER_INCH = 914400
+
+
+def _estimate_line_count(text: str, box_width_emu: int, font_pt: float, max_lines: int = 2) -> int:
+    """Rough estimate of how many lines `text` needs to wrap to inside a box
+    of the given width at the given font size. Used to size the "Model"
+    subtitle's reserved height to what it actually needs — a fixed
+    always-2-lines reservation left a visible dead gap above the divider
+    for short values (PowerPoint text boxes, unlike CSS, can't auto-hug
+    their own content height while also auto-shrinking on overflow, so this
+    has to be estimated up front rather than measured)."""
+    if not text:
+        return 1
+    box_width_in = box_width_emu / EMU_PER_INCH
+    avg_char_width_in = (font_pt * 0.52) / 72  # rough glyph width for a semibold sans font
+    chars_per_line = max(1, int(box_width_in / avg_char_width_in))
+    lines = -(-len(text) // chars_per_line)  # ceil division
+    return max(1, min(max_lines, lines))
+
+
 def _blank_slide(prs: Presentation):
     return prs.slides.add_slide(prs.slide_layouts[6])  # blank layout
 
@@ -245,18 +278,45 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
                 # in the accent color, taking the vertical space the category
                 # eyebrow used to occupy.
                 text_x = x + text_left_offset
-                _add_text(slide, text_x, y + Inches(0.18), text_w, Inches(0.4),
+                name_top = y + Inches(0.18)
+                name_h = Inches(0.4)
+                _add_text(slide, text_x, name_top, text_w, name_h,
                            product.name, 18, bold=True, color=accent_rgb)
 
-                divider = slide.shapes.add_shape(1, text_x, y + Inches(0.68), Inches(0.35), Pt(1.5))
+                # Optional "Model" subtitle — smaller than the brand name,
+                # larger than the description, in a darker shade of the
+                # accent color. Only takes up space (and only shifts the
+                # divider/description down) when actually present, so
+                # products without one render exactly as before.
+                model_text = (product.model or "").strip()
+                divider_top = name_top + name_h + Inches(0.10)
+                if model_text:
+                    model_top = name_top + name_h
+                    model_font_pt = 14
+                    model_lines = _estimate_line_count(model_text, text_w, model_font_pt)
+                    model_h = Inches(0.24) * model_lines  # sized to the estimated line count, not always 2
+                    _add_text(slide, text_x, model_top, text_w, model_h,
+                               model_text, model_font_pt, color=_darken_rgb(accent_rgb), auto_fit=True)
+                    divider_top = model_top + model_h + Inches(0.06)
+
+                divider = slide.shapes.add_shape(1, text_x, divider_top, Inches(0.35), Pt(1.5))
                 divider.fill.solid()
                 divider.fill.fore_color.rgb = RGBColor(0xDD, 0xDD, 0xDD)
                 divider.line.fill.background()
                 divider.shadow.inherit = False
 
-                _add_text(slide, text_x, y + Inches(0.85), text_w, Inches(1.1),
+                price_top = y + cell_h - Inches(0.55)
+                desc_top = divider_top + Inches(0.17)
+                # Same gap between the description box and the price as the
+                # original fixed layout (0.4in) — desc_h is just whatever
+                # space is left to reach that same fixed bottom edge, so a
+                # blank model reproduces the exact original spacing, and a
+                # present one shrinks the description's budget instead of
+                # eating into the price's breathing room.
+                desc_h = max(price_top - Inches(0.4) - desc_top, Inches(0.3))
+                _add_text(slide, text_x, desc_top, text_w, desc_h,
                            product.description, 12, color=RGBColor(0x88, 0x88, 0x88), auto_fit=True)
-                _add_text(slide, text_x, y + cell_h - Inches(0.55), text_w, Inches(0.4),
+                _add_text(slide, text_x, price_top, text_w, Inches(0.4),
                            f"{currency_symbol}{product.price:,.2f}", 18, bold=True)
 
                 if getattr(product, "is_new", False):

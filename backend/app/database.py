@@ -53,6 +53,9 @@ _ADDITIVE_COLUMNS = {
         # row (old and new alike): it means "no manual choice made, follow
         # the automatic 60-day rule."
         "is_new_override": "BOOLEAN",
+        # Optional product-card subtitle ("Model") — blank by default for
+        # every existing row, same as `description` always has been.
+        "model": "VARCHAR DEFAULT ''",
     },
 }
 

@@ -16,6 +16,7 @@ router = APIRouter(prefix="/products", tags=["products"])
 def create_product(
     category_id: int = Form(...),
     name: str = Form(...),
+    model: str = Form(""),
     description: str = Form(""),
     price: float = Form(0.0),
     image: UploadFile | None = File(None),
@@ -29,7 +30,7 @@ def create_product(
     image_path = save_uploaded_image(image.file.read()) if image else None
 
     product = models.Product(
-        category_id=category_id, name=name, description=description,
+        category_id=category_id, name=name, model=model, description=description,
         price=price, image_path=image_path, order_index=max_order,
     )
     db.add(product)
@@ -83,7 +84,10 @@ def reorder_products(payload: schemas.ProductReorder, db: Session = Depends(get_
 
 @router.get("/bulk/template", response_class=PlainTextResponse)
 def download_csv_template():
-    return "brand,category,description,price,image_url\nNova,Wireless Earbuds,Crisp sound on the go,2499,https://example.com/nova.jpg\n"
+    return (
+        "brand,model,category,description,price,image_url\n"
+        "Nova,X200,Wireless Earbuds,Crisp sound on the go,2499,https://example.com/nova.jpg\n"
+    )
 
 
 @router.post("/bulk", response_model=schemas.BulkImportResult)
@@ -91,7 +95,7 @@ def bulk_import(file: UploadFile = File(...), db: Session = Depends(get_db)):
     content = file.file.read().decode("utf-8-sig")
     reader = csv.DictReader(io.StringIO(content))
 
-    required = {"brand", "category", "description", "price"}
+    required = {"brand", "model", "category", "description", "price"}
     if not required.issubset({(f or "").strip().lower() for f in (reader.fieldnames or [])}):
         raise HTTPException(400, f"CSV must include columns: {', '.join(sorted(required))}")
 
@@ -128,6 +132,7 @@ def bulk_import(file: UploadFile = File(...), db: Session = Depends(get_db)):
             product = models.Product(
                 category_id=category.id,
                 name=name,
+                model=row.get("model", ""),
                 description=row.get("description", ""),
                 price=float(row["price"]) if row.get("price") else 0.0,
                 image_path=image_path,

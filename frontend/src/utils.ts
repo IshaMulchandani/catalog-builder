@@ -7,3 +7,24 @@ export function resolveImageUrl(path: string): string {
   }
   return `/uploads/${path}`;
 }
+
+// Shared with the pptx exporter's MODEL_DARKEN_AMOUNT constant, so the
+// "Model" subtitle's color stays consistent between the live preview and
+// the downloaded file. 0.25 = each RGB channel scaled to 75% of its
+// original value (toward black).
+const MODEL_DARKEN_AMOUNT = 0.25;
+
+/** Darkens a "#rrggbb" hex color by the given amount (0-1), used to derive
+ * the product-card "Model" subtitle color from the catalog's accent color
+ * so it updates automatically whenever the accent color changes. */
+export function darkenHex(hex: string, amount: number = MODEL_DARKEN_AMOUNT): string {
+  const clean = hex.replace("#", "");
+  if (clean.length !== 6) return hex; // not a valid hex color — leave as-is
+  const scale = 1 - amount;
+  const channel = (start: number) => {
+    const value = parseInt(clean.slice(start, start + 2), 16);
+    if (Number.isNaN(value)) return "00";
+    return Math.round(value * scale).toString(16).padStart(2, "0");
+  };
+  return `#${channel(0)}${channel(2)}${channel(4)}`;
+}

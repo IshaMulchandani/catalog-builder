@@ -77,7 +77,7 @@ def build_slide_plan(catalog: Catalog, categories: List[Category]) -> SlidePlan:
                 is_continuation=idx > 0,
                 products=[
                     SlideProduct(
-                        id=p.id, name=p.name, description=p.description,
+                        id=p.id, name=p.name, model=p.model or "", description=p.description,
                         price=p.price, image_path=p.image_path,
                         is_new=p.is_new,
                     )

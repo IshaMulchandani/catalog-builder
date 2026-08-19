@@ -40,12 +40,16 @@ class CatalogOut(CatalogBase):
 
 class ProductBase(BaseModel):
     name: str
+    # Optional subtitle shown under the brand name on the card (e.g. a
+    # model/variant identifier). Distinct from `description`.
+    model: str = ""
     description: str = ""
     price: float = 0.0
 
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
+    model: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
     category_id: Optional[int] = None
@@ -130,6 +134,7 @@ class BulkImportResult(BaseModel):
 class SlideProduct(BaseModel):
     id: int
     name: str
+    model: str = ""
     description: str
     price: float
     image_path: Optional[str] = None

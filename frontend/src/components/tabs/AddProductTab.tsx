@@ -6,13 +6,14 @@ export default function AddProductTab() {
   const { categories, addCategory, refreshPreview } = useCatalogStore();
   const [image, setImage] = useState<File | null>(null);
   const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setImage(null); setBrand(""); setCategory(""); setDescription(""); setPrice("");
+    setImage(null); setBrand(""); setModel(""); setCategory(""); setDescription(""); setPrice("");
   };
 
   const onSubmit = async () => {
@@ -30,6 +31,7 @@ export default function AddProductTab() {
       const form = new FormData();
       form.append("category_id", String(cat.id));
       form.append("name", brand.trim());
+      form.append("model", model.trim());
       form.append("description", description.trim());
       form.append("price", price || "0");
       if (image) form.append("image", image);
@@ -55,6 +57,13 @@ export default function AddProductTab() {
 
       <label className="field-label">Brand name *</label>
       <input placeholder="e.g. Nova" value={brand} onChange={(e) => setBrand(e.target.value)} />
+
+      <label className="field-label">Model</label>
+      <input
+        placeholder="e.g. X200 (optional)"
+        value={model}
+        onChange={(e) => setModel(e.target.value)}
+      />
 
       <label className="field-label">Category</label>
       <input

@@ -314,6 +314,18 @@ textarea { min-height: 70px; resize: vertical; }
   padding-right: 50px; /* keeps long names clear of the top-right NEW badge */
   flex-shrink: 0;
 }
+.product-card-model {
+  /* font-size, max-height, and color are set inline by ProductCard.
+     max-height (not height) is what makes this hug a single short line
+     with no wasted space, while still capping — and, via overflow:hidden,
+     letting the shrink-to-fit hook detect and correct — anything that
+     would need more than ~2 lines. */
+  font-weight: 600;
+  line-height: 1.35;
+  margin-top: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
 .product-card-divider { width: 28px; height: 1px; background: #ddd; margin: 8px 0; flex-shrink: 0; }
 .product-card-desc {
   /* font-size is set inline by ProductCard's shrink-to-fit logic, which

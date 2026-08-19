@@ -18,6 +18,9 @@ export interface Product {
   category_id: number;
   image_path: string | null;
   name: string;
+  // Optional subtitle shown under the brand name on the card (e.g. a
+  // model/variant identifier). Distinct from `description`.
+  model: string;
   description: string;
   price: number;
   order_index: number;
@@ -40,6 +43,7 @@ export interface Category {
 export interface SlideProduct {
   id: number;
   name: string;
+  model: string;
   description: string;
   price: number;
   image_path: string | null;

@@ -14,6 +14,7 @@ export default function EditProductModal({ product, onClose }: Props) {
 
   const [image, setImage] = useState<File | null>(null);
   const [brand, setBrand] = useState(product.name);
+  const [model, setModel] = useState(product.model);
   const [category, setCategory] = useState(currentCategory?.name ?? "");
   const [description, setDescription] = useState(product.description);
   const [price, setPrice] = useState(String(product.price));
@@ -45,6 +46,7 @@ export default function EditProductModal({ product, onClose }: Props) {
 
       const payload: Parameters<typeof updateProduct>[1] = {
         name: brand.trim(),
+        model: model.trim(),
         description: description.trim(),
         price: parseFloat(price) || 0,
         category_id: cat.id,
@@ -83,6 +85,9 @@ export default function EditProductModal({ product, onClose }: Props) {
 
         <label className="field-label">Brand name *</label>
         <input value={brand} onChange={(e) => setBrand(e.target.value)} />
+
+        <label className="field-label">Model</label>
+        <input placeholder="optional" value={model} onChange={(e) => setModel(e.target.value)} />
 
         <label className="field-label">Category</label>
         <input

@@ -49,6 +49,9 @@ class Product(Base):
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     image_path = Column(String, nullable=True)
     name = Column(String, nullable=False)
+    # Optional subtitle shown under the brand name on the product card (e.g.
+    # a model/variant identifier) — distinct from `description`.
+    model = Column(String, default="")
     description = Column(String, default="")
     price = Column(Float, default=0.0)
     order_index = Column(Integer, default=0)
