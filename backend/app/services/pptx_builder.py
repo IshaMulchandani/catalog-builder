@@ -232,23 +232,80 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
         elif slide_desc.type == "index":
             _add_text(slide, Inches(1), Inches(0.6), Inches(11), Inches(0.8),
                        "Index", 32, bold=True)
-            y = Inches(1.8)
-            for name in (slide_desc.categories or []):
-                _add_text(slide, Inches(1), y, Inches(11), Inches(0.6), name, 22)
-                y += Inches(0.7)
+
+            # Categories used to be stacked in a single column that ran off
+            # the bottom of the slide once there were more than ~7-8 of
+            # them (silently lost -- nothing rendered past the slide edge).
+            # Now they flow into as many columns as needed, each separated
+            # by a thin vertical rule, filling one column top-to-bottom
+            # before starting the next.
+            categories = slide_desc.categories or []
+            content_left = Inches(1)
+            content_width = Inches(11)
+            y_start = Inches(1.8)
+            row_h = Inches(0.7)
+            bottom_margin = Inches(0.5)
+            col_gap = Inches(0.4)
+            min_col_width = Inches(2.2)  # don't let columns get unreadably narrow
+
+            usable_height = SLIDE_H - bottom_margin - y_start
+            rows_per_col = max(1, int(usable_height // row_h))
+            num_cols = max(1, -(-len(categories) // rows_per_col)) if categories else 1
+
+            max_cols_by_width = max(1, int((content_width + col_gap) // (min_col_width + col_gap)))
+            if num_cols > max_cols_by_width:
+                # Too many columns to stay readable at this width -- pack
+                # more rows into each of a capped number of columns instead.
+                num_cols = max_cols_by_width
+                rows_per_col = -(-len(categories) // num_cols) if categories else 1
+
+            col_width = (
+                (content_width - col_gap * (num_cols - 1)) // num_cols
+                if num_cols > 1 else content_width
+            )
+
+            for col in range(num_cols):
+                col_x = content_left + col * (col_width + col_gap)
+                chunk = categories[col * rows_per_col: (col + 1) * rows_per_col]
+                y = y_start
+                for name in chunk:
+                    _add_text(slide, col_x, y, col_width, row_h, name, 22)
+                    y += row_h
+
+                if col < num_cols - 1:
+                    divider_x = col_x + col_width + col_gap // 2
+                    divider = slide.shapes.add_shape(1, divider_x, y_start, Pt(1), usable_height)
+                    divider.fill.solid()
+                    divider.fill.fore_color.rgb = RGBColor(0xDD, 0xDD, 0xDD)
+                    divider.line.fill.background()
+                    divider.shadow.inherit = False
 
         elif slide_desc.type == "category":
             title = slide_desc.title or ""
             # Raised closer to the top edge (was y=0.4) to open up breathing room
             # between the title and the product cards below it.
-            _add_text(slide, Inches(0.6), Inches(0.22), Inches(11), Inches(0.7), title, 28, bold=True)
+            title_top = Inches(0.22)
+            title_h = Inches(0.7)
+            _add_text(slide, Inches(0.6), title_top, Inches(11), title_h, title, 28, bold=True)
 
-            # 2x2 grid of horizontal cards: image on the left, details on the right
+            # 2x2 grid of horizontal cards: image on the left, details on the right.
+            # Vertically centered in the space below the title (equal gap above
+            # and below the grid) instead of pinned at a fixed offset -- the old
+            # fixed y-positions left a big gap under the title and no gap at all
+            # above the slide's bottom edge.
             products = slide_desc.products or []
             cell_w = Inches(5.9)
             cell_h = Inches(2.9)
+            row_gap = Inches(0.2)
+            grid_h = cell_h * 2 + row_gap
+
+            title_bottom = title_top + title_h
+            leftover = (SLIDE_H - title_bottom) - grid_h
+            vertical_gap = max(leftover // 2, 0)
+            grid_top = title_bottom + vertical_gap
+
             xs = [Inches(0.7), Inches(6.9)]
-            ys = [Inches(1.4), Inches(4.5)]
+            ys = [grid_top, grid_top + cell_h + row_gap]
             positions = [(xs[0], ys[0]), (xs[1], ys[0]), (xs[0], ys[1]), (xs[1], ys[1])]
 
             img_w = Inches(2.4)  # ~42% of cell_w, matching the web preview's image column

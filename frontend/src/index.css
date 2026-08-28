@@ -258,8 +258,29 @@ textarea { min-height: 70px; resize: vertical; }
   user-select: none;
 }
 
-.slide-index h2 { font-size: 26px; margin-bottom: 20px; }
-.index-row { font-size: 18px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.slide-index { display: flex; flex-direction: column; height: 100%; }
+.slide-index h2 { font-size: 26px; margin-bottom: 20px; flex-shrink: 0; }
+.index-columns {
+  /* Categories used to be a single vertical list that silently ran off the
+     bottom of the slide once there were too many to fit -- overflow:hidden
+     on .slide-canvas just clipped the rest. CSS multi-column layout flows
+     extra rows into a new column instead of losing them, with column-fill:
+     auto making it fill one column completely (top to bottom) before
+     starting the next, and column-rule drawing the divider line between
+     columns for free. */
+  flex: 1;
+  min-height: 0;
+  column-width: 260px;
+  column-gap: 40px;
+  column-rule: 1px solid #e2e2e2;
+  column-fill: auto;
+}
+.index-row {
+  font-size: 18px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  break-inside: avoid;
+}
 
 .slide-category { display: flex; flex-direction: column; height: 100%; }
 .slide-category h2 { font-size: 24px; margin-top: 0; margin-bottom: 32px; flex-shrink: 0; }

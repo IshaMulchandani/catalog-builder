@@ -83,7 +83,9 @@ export default function Preview() {
         {slide.type === "index" && (
           <div className="slide-index">
             <h2>Index</h2>
-            {(slide.categories ?? []).map((name) => <div key={name} className="index-row">{name}</div>)}
+            <div className="index-columns">
+              {(slide.categories ?? []).map((name) => <div key={name} className="index-row">{name}</div>)}
+            </div>
           </div>
         )}
         {slide.type === "category" && (
