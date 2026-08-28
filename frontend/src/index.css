@@ -336,55 +336,68 @@ textarea { min-height: 70px; resize: vertical; }
   flex-shrink: 0;
 }
 .product-card-body {
+  /* Every size below reads --card-scale, a single multiplier ProductCard's
+     useCardScale hook solves for by measuring this element's own
+     scrollHeight vs clientHeight and writing the CSS variable directly.
+     Shrinking name/model/desc/price/gaps together (instead of shrinking the
+     description alone, which just pushed the same fixed-height shortfall
+     onto whichever element came after it) is what guarantees every line of
+     the description AND the price are always visible in a fixed-height
+     card, at the cost of a smaller (never dropped) font when content is
+     dense. Defaults to 1 so nothing depends on JS having run yet. */
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
+  padding: calc(12px * var(--card-scale, 1)) calc(14px * var(--card-scale, 1));
   flex: 1;
   min-width: 0;
   min-height: 0;
 }
 .product-card-name {
-  font-size: 17px;
+  font-size: calc(17px * var(--card-scale, 1));
   font-weight: 700;
   padding-right: 50px; /* keeps long names clear of the top-right NEW badge */
   flex-shrink: 0;
 }
 .product-card-model {
-  /* font-size, max-height, and color are set inline by ProductCard.
-     max-height (not height) is what makes this hug a single short line
-     with no wasted space, while still capping — and, via overflow:hidden,
-     letting the shrink-to-fit hook detect and correct — anything that
-     would need more than ~2 lines. */
+  font-size: calc(14px * var(--card-scale, 1));
+  /* Caps at roughly 2 lines' worth of room at full scale, shrinking with
+     everything else — a one-line value hugs its own natural height with no
+     wasted space, and only text that needs more room wraps up to the cap. */
+  max-height: calc(38px * var(--card-scale, 1));
   font-weight: 600;
   line-height: 1.35;
-  margin-top: 2px;
+  margin-top: calc(2px * var(--card-scale, 1));
   overflow: hidden;
   flex-shrink: 0;
 }
-.product-card-divider { width: 28px; height: 1px; background: #ddd; margin: 8px 0; flex-shrink: 0; }
+.product-card-divider {
+  width: 28px;
+  height: 1px;
+  background: #ddd;
+  margin: calc(8px * var(--card-scale, 1)) 0;
+  flex-shrink: 0;
+}
 .product-card-desc {
-  /* font-size is set inline by ProductCard's shrink-to-fit logic, which
-     needs scrollHeight to reflect the text's true (unclamped) height to
-     measure overflow correctly — so no -webkit-line-clamp here.
-     Each of the user's typed lines is rendered as its own child div (see
+  /* Each of the user's typed lines is rendered as its own child div (see
      .product-card-desc-line below) rather than relying on white-space:
-     pre-line to force breaks inside one text node — that approach could
-     under-measure scrollHeight after a few shrink-to-fit font-size
-     mutations, silently dropping the last line. min-height reserves room
-     for a full DESCRIPTION_MAX_LINES (3) lines at the smallest font the
-     shrink-to-fit loop is allowed to use (7.5px * 1.35 line-height), so
-     the flex layout can never hand this box less space than 3 lines need. */
-  font-size: 12px;
+     pre-line to force breaks inside one text node, so wrapping/height are
+     plain, predictable block layout. */
+  font-size: calc(12px * var(--card-scale, 1));
   line-height: 1.35;
   color: #888;
   flex: 1;
-  min-height: 31px;
-  overflow: hidden;
+  min-height: 0;
 }
 .product-card-desc-line {
   white-space: pre-wrap;
 }
-.product-card-price { font-size: 18px; font-weight: 700; color: #111; margin-top: 6px; flex-shrink: 0; }
+.product-card-price {
+  font-size: calc(18px * var(--card-scale, 1));
+  font-weight: 700;
+  color: #111;
+  margin-top: calc(6px * var(--card-scale, 1));
+  flex-shrink: 0;
+}
 
 .slide-nav { display: flex; justify-content: center; align-items: center; gap: 16px; padding-top: 12px; }
 .slide-nav button { border: 1px solid #ddd; background: #fff; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; }
