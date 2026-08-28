@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import LogoOverlay from "./LogoOverlay";
 import ProductCard from "./ProductCard";
+import IndexColumns from "./IndexColumns";
 import { resolveImageUrl } from "../../utils";
 
 const DEFAULT_LOGO_TRANSFORM = { x: 0.75, y: 0.06, w: 0.18, h: 0.18 };
@@ -83,9 +84,7 @@ export default function Preview() {
         {slide.type === "index" && (
           <div className="slide-index">
             <h2>Index</h2>
-            <div className="index-columns">
-              {(slide.categories ?? []).map((name) => <div key={name} className="index-row">{name}</div>)}
-            </div>
+            <IndexColumns categories={slide.categories ?? []} />
           </div>
         )}
         {slide.type === "category" && (

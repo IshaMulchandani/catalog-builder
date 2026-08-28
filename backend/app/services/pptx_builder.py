@@ -246,18 +246,15 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
             row_h = Inches(0.7)
             bottom_margin = Inches(0.5)
             col_gap = Inches(0.4)
-            min_col_width = Inches(2.2)  # don't let columns get unreadably narrow
 
+            # Column count is driven purely by how many rows fit vertically --
+            # no cap on column count. However many columns that implies, they
+            # split the fixed content_width evenly (see col_width below), so
+            # more categories means narrower columns rather than anything
+            # overflowing past the slide edge.
             usable_height = SLIDE_H - bottom_margin - y_start
             rows_per_col = max(1, int(usable_height // row_h))
             num_cols = max(1, -(-len(categories) // rows_per_col)) if categories else 1
-
-            max_cols_by_width = max(1, int((content_width + col_gap) // (min_col_width + col_gap)))
-            if num_cols > max_cols_by_width:
-                # Too many columns to stay readable at this width -- pack
-                # more rows into each of a capped number of columns instead.
-                num_cols = max_cols_by_width
-                rows_per_col = -(-len(categories) // num_cols) if categories else 1
 
             col_width = (
                 (content_width - col_gap * (num_cols - 1)) // num_cols
@@ -269,7 +266,7 @@ def build_pptx(plan: SlidePlan, accent_color: str, currency_symbol: str) -> Pres
                 chunk = categories[col * rows_per_col: (col + 1) * rows_per_col]
                 y = y_start
                 for name in chunk:
-                    _add_text(slide, col_x, y, col_width, row_h, name, 22)
+                    _add_text(slide, col_x, y, col_width, row_h, name, 22, auto_fit=True)
                     y += row_h
 
                 if col < num_cols - 1:

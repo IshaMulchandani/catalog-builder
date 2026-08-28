@@ -263,23 +263,37 @@ textarea { min-height: 70px; resize: vertical; }
 .index-columns {
   /* Categories used to be a single vertical list that silently ran off the
      bottom of the slide once there were too many to fit -- overflow:hidden
-     on .slide-canvas just clipped the rest. CSS multi-column layout flows
-     extra rows into a new column instead of losing them, with column-fill:
-     auto making it fill one column completely (top to bottom) before
-     starting the next, and column-rule drawing the divider line between
-     columns for free. */
+     on .slide-canvas just clipped the rest. IndexColumns.tsx now works out
+     how many columns are actually needed and renders exactly that many
+     here as flex children, sharing this container's fixed width equally --
+     column-width in CSS was tried first, but it only enforces a *minimum*
+     width and keeps adding full-width columns past the container's edge
+     instead of shrinking, which overflowed the slide once a 3rd column was
+     needed. flex: 1 on each .index-column guarantees everything the JS
+     decided on actually fits, narrowing every column as the count grows. */
   flex: 1;
   min-height: 0;
-  column-width: 260px;
-  column-gap: 40px;
-  column-rule: 1px solid #e2e2e2;
-  column-fill: auto;
+  display: flex;
+}
+.index-column {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-right: 32px;
+  margin-right: 32px;
+  border-right: 1px solid #e2e2e2;
+}
+.index-column:last-child {
+  border-right: none;
+  margin-right: 0;
+  padding-right: 0;
 }
 .index-row {
   font-size: 18px;
   padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
-  break-inside: avoid;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .slide-category { display: flex; flex-direction: column; height: 100%; }
