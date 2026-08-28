@@ -28,7 +28,7 @@ const BASE = {
 // small font, on a fairly narrow card column -- this floor is set low enough
 // to leave real headroom for that case once every other element is also
 // contributing freed-up space, rather than another guessed value.
-const MIN_SCALE = 0.35;
+const MIN_SCALE = 0.25;
 const SCALE_STEP = 0.03;
 
 interface Refs {
@@ -170,7 +170,15 @@ export default function ProductCard({ product, accent, currency }: Props) {
         {/* Each user-entered line is its own block element (rather than one
             text node + white-space: pre-line) so wrapping and height are
             plain, predictable block layout with no whitespace-collapsing
-            edge cases. */}
+            edge cases. This box does NOT grow/shrink (see index.css: flex:
+            0 0 auto) -- it always takes exactly the height its own text
+            needs at the current scale. A `flex:1` box here was the actual
+            cause of the price/description overlap: flex-shrink let this
+            box get squeezed smaller than its own text needed, but the text
+            itself doesn't shrink with its box, so it spilled past the
+            box's shrunk edge -- and price, positioned right after that
+            shrunk (not real) height, ended up sitting inside the spillover
+            instead of below it. */}
         <div
           ref={(el) => { refs.current.desc = el; }}
           className="product-card-desc"
@@ -180,6 +188,11 @@ export default function ProductCard({ product, accent, currency }: Props) {
             <div key={i} className="product-card-desc-line">{line}</div>
           ))}
         </div>
+        {/* Empty spacer absorbs leftover space so price still sits near the
+            bottom when the description is short -- unlike putting flex:1
+            on the description itself, an empty element has no content of
+            its own to overflow, so it can shrink to 0 with nothing lost. */}
+        <div style={{ flex: 1, minHeight: 0 }} />
         <div
           ref={(el) => { refs.current.price = el; }}
           className="product-card-price"

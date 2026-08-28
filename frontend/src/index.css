@@ -373,11 +373,18 @@ textarea { min-height: 70px; resize: vertical; }
   /* Each of the user's typed lines is rendered as its own child div (see
      .product-card-desc-line below) rather than relying on white-space:
      pre-line to force breaks inside one text node, so wrapping/height are
-     plain, predictable block layout. */
+     plain, predictable block layout.
+     flex: 0 0 auto (not flex:1) is deliberate: this box must always take
+     exactly the height its own text needs at the current scale, never
+     less. flex:1 let it be squeezed smaller than its content when the card
+     was tight, and since the overflowing text doesn't shrink along with
+     its squeezed box, it spilled into -- and visually overlapped -- the
+     price row positioned right after it. A separate empty spacer (see
+     ProductCard.tsx) handles absorbing leftover space for short
+     descriptions instead. */
   line-height: 1.35;
   color: #888;
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
 }
 .product-card-desc-line {
   white-space: pre-wrap;
