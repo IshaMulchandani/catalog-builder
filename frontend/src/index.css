@@ -365,13 +365,19 @@ textarea { min-height: 70px; resize: vertical; }
 .product-card-desc {
   /* font-size is set inline by ProductCard's shrink-to-fit logic, which
      needs scrollHeight to reflect the text's true (unclamped) height to
-     measure overflow correctly — so no -webkit-line-clamp here. */
+     measure overflow correctly — so no -webkit-line-clamp here.
+     white-space: pre-line preserves the user's own line breaks (typed in
+     the description textarea) as real visual line breaks, instead of the
+     browser default of collapsing all whitespace -- a "line 1\nline
+     2\nline 3" description would otherwise render as one run-on line. It
+     still wraps normally within each of the user's lines if one is long. */
   font-size: 12px;
   line-height: 1.35;
   color: #888;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  white-space: pre-line;
 }
 .product-card-price { font-size: 18px; font-weight: 700; color: #111; margin-top: 6px; flex-shrink: 0; }
 

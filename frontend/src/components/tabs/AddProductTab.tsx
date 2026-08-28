@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import { api } from "../../api/client";
+import { limitLines, DESCRIPTION_MAX_LINES } from "../../utils";
 
 export default function AddProductTab() {
   const { categories, addCategory, refreshPreview } = useCatalogStore();
@@ -77,10 +78,13 @@ export default function AddProductTab() {
       </datalist>
 
       <label className="field-label">Description</label>
+      <div className="muted small" style={{ marginTop: -12, marginBottom: 6 }}>
+        Up to {DESCRIPTION_MAX_LINES} lines — each line you enter is shown on its own line on the card.
+      </div>
       <textarea
-        placeholder="Short marketing description..."
+        placeholder={"Short marketing description...\ne.g. one feature per line"}
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        onChange={(e) => setDescription(limitLines(e.target.value))}
       />
 
       <label className="field-label">Price</label>

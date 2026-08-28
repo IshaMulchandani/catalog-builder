@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Product } from "../../types";
 import { useCatalogStore } from "../../store/useCatalogStore";
-import { resolveImageUrl } from "../../utils";
+import { resolveImageUrl, limitLines, DESCRIPTION_MAX_LINES } from "../../utils";
 
 interface Props {
   product: Product;
@@ -100,7 +100,10 @@ export default function EditProductModal({ product, onClose }: Props) {
         </datalist>
 
         <label className="field-label">Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+        <div className="muted small" style={{ marginTop: -12, marginBottom: 6 }}>
+          Up to {DESCRIPTION_MAX_LINES} lines — each line is shown on its own line on the card.
+        </div>
+        <textarea value={description} onChange={(e) => setDescription(limitLines(e.target.value))} />
 
         <label className="field-label">Price</label>
         <input value={price} onChange={(e) => setPrice(e.target.value)} />

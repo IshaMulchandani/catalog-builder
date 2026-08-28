@@ -11,6 +11,17 @@ from ..services.image_service import save_uploaded_image, resolve_bulk_image
 
 router = APIRouter(prefix="/products", tags=["products"])
 
+DESCRIPTION_MAX_LINES = 3
+
+
+def _limit_lines(text: str, max_lines: int = DESCRIPTION_MAX_LINES) -> str:
+    """Mirrors the frontend's limitLines() so the cap holds even for
+    requests that don't go through the Add/Edit forms (raw API calls, bulk
+    CSV import with a messy multi-line cell) -- the product card's
+    line-preserving layout is only designed for up to this many lines."""
+    lines = text.split("\n")
+    return "\n".join(lines[:max_lines]) if len(lines) > max_lines else text
+
 
 @router.post("", response_model=schemas.ProductOut)
 def create_product(
@@ -30,7 +41,7 @@ def create_product(
     image_path = save_uploaded_image(image.file.read()) if image else None
 
     product = models.Product(
-        category_id=category_id, name=name, model=model, description=description,
+        category_id=category_id, name=name, model=model, description=_limit_lines(description),
         price=price, image_path=image_path, order_index=max_order,
     )
     db.add(product)
@@ -45,6 +56,8 @@ def update_product(product_id: int, payload: schemas.ProductUpdate, db: Session 
     if not product:
         raise HTTPException(404, "Product not found")
     for field, value in payload.model_dump(exclude_unset=True).items():
+        if field == "description" and isinstance(value, str):
+            value = _limit_lines(value)
         setattr(product, field, value)
     db.commit()
     db.refresh(product)
@@ -133,7 +146,7 @@ def bulk_import(file: UploadFile = File(...), db: Session = Depends(get_db)):
                 category_id=category.id,
                 name=name,
                 model=row.get("model", ""),
-                description=row.get("description", ""),
+                description=_limit_lines(row.get("description", "")),
                 price=float(row["price"]) if row.get("price") else 0.0,
                 image_path=image_path,
                 order_index=max_order,

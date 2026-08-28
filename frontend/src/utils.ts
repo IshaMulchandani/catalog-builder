@@ -28,3 +28,15 @@ export function darkenHex(hex: string, amount: number = MODEL_DARKEN_AMOUNT): st
   };
   return `#${channel(0)}${channel(2)}${channel(4)}`;
 }
+
+export const DESCRIPTION_MAX_LINES = 3;
+
+/** Truncates text to at most `maxLines` lines, dropping anything typed or
+ * pasted beyond that. Used on the description textarea so the product
+ * card's line-preserving layout (see .product-card-desc's white-space:
+ * pre-line) never has to deal with more lines than it was designed for. */
+export function limitLines(text: string, maxLines: number = DESCRIPTION_MAX_LINES): string {
+  const lines = text.split("\n");
+  if (lines.length <= maxLines) return text;
+  return lines.slice(0, maxLines).join("\n");
+}

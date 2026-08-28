@@ -191,12 +191,23 @@ def _add_text(slide, left, top, width, height, text, size, bold=False, color=Non
         tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
     p = tf.paragraphs[0]
     p.alignment = align
-    run = p.add_run()
-    run.text = text
-    run.font.size = Pt(size)
-    run.font.bold = bold
-    if color:
-        run.font.color.rgb = color
+    # Split on literal newlines and join them with explicit line breaks
+    # within the SAME paragraph (rather than one run holding the raw "\n"
+    # characters, which PowerPoint/LibreOffice just ignore) -- this is what
+    # makes a user-entered 3-line description actually render as 3 lines
+    # instead of being flattened into one run-on line. add_line_break()
+    # inserts a proper <a:br/>, unlike starting a new paragraph, which would
+    # add unwanted paragraph spacing between the lines.
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        if i > 0:
+            p.add_line_break()
+        run = p.add_run()
+        run.text = line
+        run.font.size = Pt(size)
+        run.font.bold = bold
+        if color:
+            run.font.color.rgb = color
     return box
 
 
