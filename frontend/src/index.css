@@ -336,37 +336,30 @@ textarea { min-height: 70px; resize: vertical; }
   flex-shrink: 0;
 }
 .product-card-body {
-  /* Every size below reads --card-scale, a single multiplier ProductCard's
-     useCardScale hook solves for by measuring this element's own
-     scrollHeight vs clientHeight and writing the CSS variable directly.
-     Shrinking name/model/desc/price/gaps together (instead of shrinking the
-     description alone, which just pushed the same fixed-height shortfall
-     onto whichever element came after it) is what guarantees every line of
-     the description AND the price are always visible in a fixed-height
-     card, at the cost of a smaller (never dropped) font when content is
-     dense. Defaults to 1 so nothing depends on JS having run yet. */
+  /* font-size/margin/padding/max-height for this and its children are set
+     as inline styles by ProductCard (computed from a single `scale` factor
+     it solves for by measuring this element's own scrollHeight vs
+     clientHeight). An earlier version drove those through a --card-scale
+     CSS variable referenced via calc() here instead -- the price vanished
+     outright in production while looking fine locally, which points at
+     the production CSS minifier (esbuild, Vite's default) mishandling
+     calc()+custom-property expressions. Plain inline styles computed in JS
+     have no CSS asset pipeline to go through, so nothing here can mangle
+     them; only non-scaling layout properties stay in this stylesheet. */
   display: flex;
   flex-direction: column;
-  padding: calc(12px * var(--card-scale, 1)) calc(14px * var(--card-scale, 1));
   flex: 1;
   min-width: 0;
   min-height: 0;
 }
 .product-card-name {
-  font-size: calc(17px * var(--card-scale, 1));
   font-weight: 700;
   padding-right: 50px; /* keeps long names clear of the top-right NEW badge */
   flex-shrink: 0;
 }
 .product-card-model {
-  font-size: calc(14px * var(--card-scale, 1));
-  /* Caps at roughly 2 lines' worth of room at full scale, shrinking with
-     everything else — a one-line value hugs its own natural height with no
-     wasted space, and only text that needs more room wraps up to the cap. */
-  max-height: calc(38px * var(--card-scale, 1));
   font-weight: 600;
   line-height: 1.35;
-  margin-top: calc(2px * var(--card-scale, 1));
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -374,7 +367,6 @@ textarea { min-height: 70px; resize: vertical; }
   width: 28px;
   height: 1px;
   background: #ddd;
-  margin: calc(8px * var(--card-scale, 1)) 0;
   flex-shrink: 0;
 }
 .product-card-desc {
@@ -382,7 +374,6 @@ textarea { min-height: 70px; resize: vertical; }
      .product-card-desc-line below) rather than relying on white-space:
      pre-line to force breaks inside one text node, so wrapping/height are
      plain, predictable block layout. */
-  font-size: calc(12px * var(--card-scale, 1));
   line-height: 1.35;
   color: #888;
   flex: 1;
@@ -392,10 +383,8 @@ textarea { min-height: 70px; resize: vertical; }
   white-space: pre-wrap;
 }
 .product-card-price {
-  font-size: calc(18px * var(--card-scale, 1));
   font-weight: 700;
   color: #111;
-  margin-top: calc(6px * var(--card-scale, 1));
   flex-shrink: 0;
 }
 
