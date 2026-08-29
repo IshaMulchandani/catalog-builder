@@ -156,8 +156,12 @@ textarea { min-height: 70px; resize: vertical; }
 
 .category-block { border: 1px solid #eee; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
 .category-header {
+  /* cursor:grab lives on the inner wrapper (see SortableCategory.tsx) now,
+     not here -- drag listeners are scoped to that inner div so the edit/
+     delete icon buttons alongside it don't get caught up in drag
+     detection, matching how SortableProduct scopes its own listeners. */
   display: flex; align-items: center; gap: 8px;
-  padding: 10px 12px; background: #fafafa; cursor: grab; font-weight: 600; font-size: 14px;
+  padding: 10px 12px; background: #fafafa; font-weight: 600; font-size: 14px;
 }
 .drag-handle { color: #bbb; }
 .category-products { padding: 6px; min-height: 40px; }

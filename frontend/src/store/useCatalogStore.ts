@@ -14,6 +14,8 @@ interface CatalogState {
   updateCatalog: (payload: Partial<Catalog>) => Promise<void>;
   setCatalogLocal: (patch: Partial<Catalog>) => void;
   addCategory: (name: string) => Promise<void>;
+  updateCategory: (id: number, name: string) => Promise<void>;
+  removeCategory: (id: number) => Promise<void>;
   reorderCategories: (orderedIds: number[]) => Promise<void>;
   reorderProducts: (items: { id: number; category_id: number; order_index: number }[]) => Promise<void>;
   removeProduct: (id: number) => Promise<void>;
@@ -66,6 +68,24 @@ export const useCatalogStore = create<CatalogState>((set, get) => ({
 
   addCategory: async (name) => {
     await api.createCategory(name);
+    await get().refreshPreview();
+  },
+
+  // Name-only rename -- the backend's CategoryUpdate schema only accepts
+  // `name` in the first place, so there's no risk of this accidentally
+  // touching a category's products.
+  updateCategory: async (id, name) => {
+    await api.updateCategory(id, name);
+    await get().refreshPreview();
+  },
+
+  // Deleting a category cascades to delete every product under it at the
+  // database level (Category.products relationship has
+  // cascade="all, delete-orphan", and the FK is ondelete="CASCADE") -- the
+  // confirmation the user sees before calling this is what actually
+  // enforces "are you sure", this action just carries it out.
+  removeCategory: async (id) => {
+    await api.deleteCategory(id);
     await get().refreshPreview();
   },
 

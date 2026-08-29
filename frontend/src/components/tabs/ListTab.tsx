@@ -5,10 +5,11 @@ import {
   type CollisionDetection,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import type { Product } from "../../types";
+import type { Category, Product } from "../../types";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import SortableCategory from "./SortableCategory";
 import EditProductModal from "./EditProductModal";
+import EditCategoryModal from "./EditCategoryModal";
 
 // Plain closestCenter evaluates every registered droppable in the whole tab
 // flatly — every category header, every category drop-zone, and every
@@ -29,6 +30,7 @@ export default function ListTab() {
   const { categories, reorderCategories, reorderProducts } = useCatalogStore();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
   const totalProducts = categories.reduce((sum, c) => sum + c.products.length, 0);
@@ -119,7 +121,12 @@ export default function ListTab() {
       <DndContext sensors={sensors} collisionDetection={collisionDetectionStrategy} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <SortableContext items={categories.map((c) => `category-${c.id}`)} strategy={verticalListSortingStrategy}>
           {categories.map((c) => (
-            <SortableCategory key={c.id} category={c} onEditProduct={setEditingProduct} />
+            <SortableCategory
+              key={c.id}
+              category={c}
+              onEditProduct={setEditingProduct}
+              onEditCategory={setEditingCategory}
+            />
           ))}
         </SortableContext>
         <DragOverlay>{activeId ? <div className="drag-ghost" /> : null}</DragOverlay>
@@ -129,6 +136,9 @@ export default function ListTab() {
       </div>
       {editingProduct && (
         <EditProductModal product={editingProduct} onClose={() => setEditingProduct(null)} />
+      )}
+      {editingCategory && (
+        <EditCategoryModal category={editingCategory} onClose={() => setEditingCategory(null)} />
       )}
     </div>
   );

@@ -35,6 +35,12 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     }),
+  updateCategory: (id: number, name: string) =>
+    request<Category>(`/categories/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    }),
   deleteCategory: (id: number) => request<void>(`/categories/${id}`, { method: "DELETE" }),
   reorderCategories: (items: { id: number; order_index: number }[]) =>
     request<void>("/categories/reorder/bulk", {
