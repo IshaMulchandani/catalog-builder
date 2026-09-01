@@ -15,6 +15,11 @@ class CatalogBase(BaseModel):
     logo_y: float = 0.06
     logo_w: float = 0.18
     logo_h: float = 0.18
+    # Lowercased brand (product.name) keys currently excluded from the
+    # preview/export -- empty means "All brands". See
+    # Catalog.excluded_brands in models.py for why exclusion (not
+    # inclusion) is what's persisted.
+    excluded_brands: List[str] = []
 
 
 class CatalogUpdate(BaseModel):
@@ -28,6 +33,7 @@ class CatalogUpdate(BaseModel):
     logo_y: Optional[float] = None
     logo_w: Optional[float] = None
     logo_h: Optional[float] = None
+    excluded_brands: Optional[List[str]] = None
 
 
 class CatalogOut(CatalogBase):

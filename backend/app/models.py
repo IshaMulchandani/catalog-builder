@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime
@@ -26,7 +27,38 @@ class Catalog(Base):
     accent_color = Column(String, default="#002FA7")
     currency_symbol = Column(String, default="₹")
     include_cover = Column(Boolean, default=True)
+    # Raw JSON-encoded storage for the "Include Brands" filter on the Cover
+    # tab -- see the `excluded_brands` property below for why this stores
+    # EXCLUDED brands rather than included ones, and why the column itself
+    # is named differently from the property.
+    excluded_brands_json = Column(String, nullable=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+    @property
+    def excluded_brands(self) -> list[str]:
+        """Lowercased, trimmed brand keys (product.name.strip().lower())
+        currently excluded from the preview/export. Empty list (the default,
+        matching every catalog that predates this feature) means "All
+        brands" -- no filtering at all.
+
+        Deliberately stores what's EXCLUDED rather than what's included:
+        the Cover tab lets a user uncheck "All" and hand-pick specific
+        brands, but a brand that doesn't exist yet obviously can't be in
+        any "included" list a user builds today. Storing exclusions means a
+        brand-new brand name is included by default the moment it's
+        created, instead of silently vanishing from the catalog until
+        someone remembers to go re-check it on the Cover tab."""
+        if not self.excluded_brands_json:
+            return []
+        try:
+            return json.loads(self.excluded_brands_json)
+        except (ValueError, TypeError):
+            return []
+
+    @excluded_brands.setter
+    def excluded_brands(self, value: list[str]) -> None:
+        cleaned = [b.strip().lower() for b in (value or []) if b and b.strip()]
+        self.excluded_brands_json = json.dumps(cleaned) if cleaned else None
 
 
 class Category(Base):

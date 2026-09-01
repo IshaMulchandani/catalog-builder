@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import { api } from "../../api/client";
-import { limitLines, DESCRIPTION_MAX_LINES } from "../../utils";
+import { limitLines, DESCRIPTION_MAX_LINES, getUniqueBrands } from "../../utils";
 
 export default function AddProductTab() {
   const { categories, addCategory, refreshPreview } = useCatalogStore();
+  const brands = getUniqueBrands(categories);
   const [image, setImage] = useState<File | null>(null);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
@@ -57,7 +58,15 @@ export default function AddProductTab() {
       </label>
 
       <label className="field-label">Brand name *</label>
-      <input placeholder="e.g. Nova" value={brand} onChange={(e) => setBrand(e.target.value)} />
+      <input
+        placeholder="e.g. Nova"
+        value={brand}
+        onChange={(e) => setBrand(e.target.value)}
+        list="brand-suggestions"
+      />
+      <datalist id="brand-suggestions">
+        {brands.map((b) => <option key={b.key} value={b.label} />)}
+      </datalist>
 
       <label className="field-label">Model</label>
       <input

@@ -38,6 +38,10 @@ _ADDITIVE_COLUMNS = {
         "logo_y": "REAL DEFAULT 0.06",
         "logo_w": "REAL DEFAULT 0.18",
         "logo_h": "REAL DEFAULT 0.18",
+        # "Include Brands" filter -- NULL (the correct value for every
+        # existing catalog, old and new) means no brands are excluded, i.e.
+        # "All". See Catalog.excluded_brands in models.py.
+        "excluded_brands_json": "TEXT",
     },
     "products": {
         "included": "BOOLEAN DEFAULT TRUE",

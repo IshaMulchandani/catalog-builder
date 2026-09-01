@@ -1,11 +1,32 @@
 import { useState, useEffect, type ChangeEvent } from "react";
 import { useCatalogStore } from "../../store/useCatalogStore";
 import { api } from "../../api/client";
+import { getUniqueBrands } from "../../utils";
 
 const SWATCHES = ["#002FA7", "#111111", "#0F9D58", "#DB4437", "#F4511E", "#8E24AA", "#D81B60", "#00897B"];
 
 export default function CoverTab() {
-  const { catalog, updateCatalog, setCatalogLocal } = useCatalogStore();
+  const { catalog, updateCatalog, setCatalogLocal, categories } = useCatalogStore();
+  const brands = getUniqueBrands(categories);
+  // Excluded (not included) brand keys, from the catalog record -- see
+  // Catalog.excluded_brands in the backend for why exclusion, not
+  // inclusion, is what's persisted. Empty means "All brands".
+  const excludedBrands = new Set(catalog?.excluded_brands ?? []);
+  const allBrandsIncluded = excludedBrands.size === 0;
+
+  const setAllBrands = (included: boolean) => {
+    // Checking "All" clears every exclusion. Unchecking it with nothing
+    // else picked yet excludes every known brand -- the catalog then shows
+    // nothing until specific brands are checked back on, same as any
+    // "select all" master checkbox unchecking every child.
+    updateCatalog({ excluded_brands: included ? [] : brands.map((b) => b.key) });
+  };
+
+  const toggleBrand = (key: string, included: boolean) => {
+    const next = new Set(excludedBrands);
+    if (included) next.delete(key); else next.add(key);
+    updateCatalog({ excluded_brands: [...next] });
+  };
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [currency, setCurrency] = useState("₹");
@@ -109,6 +130,40 @@ export default function CoverTab() {
         onChange={(e) => { setCurrency(e.target.value); setCatalogLocal({ currency_symbol: e.target.value }); }}
         onBlur={() => save({ currency_symbol: currency })}
       />
+
+      <label className="field-label">Include Brands</label>
+      <div className="muted small" style={{ marginTop: -12, marginBottom: 6 }}>
+        Choose which brands appear in the preview and downloaded catalog. A brand added later is included automatically unless you uncheck it here.
+      </div>
+      {brands.length === 0 ? (
+        <div className="muted small">No products yet — add some to filter by brand.</div>
+      ) : (
+        <>
+          <div className="row toggle-row">
+            <div className="field-label" style={{ margin: 0 }}>All</div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={allBrandsIncluded}
+                onChange={(e) => setAllBrands(e.target.checked)}
+              />
+              <span className="slider" />
+            </label>
+          </div>
+          <div className="brand-checklist">
+            {brands.map((b) => (
+              <label key={b.key} className="brand-checklist-item">
+                <input
+                  type="checkbox"
+                  checked={!excludedBrands.has(b.key)}
+                  onChange={(e) => toggleBrand(b.key, e.target.checked)}
+                />
+                {b.label}
+              </label>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

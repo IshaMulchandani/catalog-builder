@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Product } from "../../types";
 import { useCatalogStore } from "../../store/useCatalogStore";
-import { resolveImageUrl, limitLines, DESCRIPTION_MAX_LINES } from "../../utils";
+import { resolveImageUrl, limitLines, DESCRIPTION_MAX_LINES, getUniqueBrands } from "../../utils";
 
 interface Props {
   product: Product;
@@ -11,6 +11,7 @@ interface Props {
 export default function EditProductModal({ product, onClose }: Props) {
   const { categories, addCategory, updateProduct, replaceProductImage } = useCatalogStore();
   const currentCategory = categories.find((c) => c.id === product.category_id);
+  const brands = getUniqueBrands(categories);
 
   const [image, setImage] = useState<File | null>(null);
   const [brand, setBrand] = useState(product.name);
@@ -84,7 +85,10 @@ export default function EditProductModal({ product, onClose }: Props) {
         )}
 
         <label className="field-label">Brand name *</label>
-        <input value={brand} onChange={(e) => setBrand(e.target.value)} />
+        <input value={brand} onChange={(e) => setBrand(e.target.value)} list="edit-brand-suggestions" />
+        <datalist id="edit-brand-suggestions">
+          {brands.map((b) => <option key={b.key} value={b.label} />)}
+        </datalist>
 
         <label className="field-label">Model</label>
         <input placeholder="optional" value={model} onChange={(e) => setModel(e.target.value)} />

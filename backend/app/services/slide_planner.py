@@ -48,14 +48,27 @@ def build_slide_plan(catalog: Catalog, categories: List[Category]) -> SlidePlan:
 
     ordered_categories = sorted(categories, key=lambda c: c.order_index)
 
-    # Deselected products (unchecked in the List tab) stay in the DB but are
-    # left out of both the index and the category slides — compute the
-    # surviving, brand-grouped product list per category up front so the
+    # Brand keys (lowercased, trimmed product.name) excluded via the Cover
+    # tab's "Include Brands" filter -- empty means no brand filtering at all
+    # ("All"). Matches case-insensitively against product.name so brands
+    # entered with inconsistent casing (e.g. "Yonker" vs "YONKER") are
+    # treated as the same brand rather than silently splitting a filtered-in
+    # brand into a filtered-in half and a filtered-out half.
+    excluded_brands = set(catalog.excluded_brands)
+
+    # Deselected products (unchecked in the List tab) and products whose
+    # brand is excluded by the Cover tab's brand filter both stay in the DB
+    # but are left out of both the index and the category slides — compute
+    # the surviving, brand-grouped product list per category up front so the
     # index only lists categories that actually end up with a slide.
     visible_products_by_category = {}
     for category in ordered_categories:
         products = sorted(category.products, key=lambda p: p.order_index)
-        products = [p for p in products if p.included is not False]  # None treated as included (defensive)
+        products = [
+            p for p in products
+            if p.included is not False  # None treated as included (defensive)
+            and p.name.strip().lower() not in excluded_brands
+        ]
         visible_products_by_category[category.id] = _group_by_brand(products)
 
     categories_with_products = [c for c in ordered_categories if visible_products_by_category[c.id]]

@@ -11,6 +11,10 @@ export interface Catalog {
   logo_y: number;
   logo_w: number;
   logo_h: number;
+  // Lowercased brand (product name) keys currently excluded from the
+  // preview/export -- empty means "All brands". See useCatalogStore's
+  // brand-filter helpers for how this maps to the Cover tab's checklist.
+  excluded_brands: string[];
 }
 
 export interface Product {

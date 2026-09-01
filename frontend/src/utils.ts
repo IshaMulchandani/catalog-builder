@@ -1,3 +1,5 @@
+import type { Category } from "./types";
+
 /** Resolve a stored image_path/logo_path to a usable <img src>. In production
  * (R2 configured on the backend) these are already full URLs; in local dev
  * they're bare filenames served under /uploads/. */
@@ -39,4 +41,37 @@ export function limitLines(text: string, maxLines: number = DESCRIPTION_MAX_LINE
   const lines = text.split("\n");
   if (lines.length <= maxLines) return text;
   return lines.slice(0, maxLines).join("\n");
+}
+
+export interface Brand {
+  /** Lowercased, trimmed product.name -- what filtering/exclusion actually
+   * matches on, and what the backend's Catalog.excluded_brands stores. */
+  key: string;
+  /** The casing shown to the user -- whichever raw product.name was
+   * encountered first for this key. Real data in this catalog has the same
+   * brand typed with inconsistent casing (e.g. "Yonker" vs "YONKER" on
+   * different products); without this de-duplication those would show up
+   * as separate brands in both the autocomplete and the Cover tab's
+   * checklist even though they're clearly meant to be the same brand. */
+  label: string;
+}
+
+/** Every distinct brand (product.name) across all categories/products,
+ * de-duplicated case-insensitively and sorted alphabetically by display
+ * label. Shared by the brand autocomplete (Add/Edit product forms) and the
+ * Cover tab's "Include Brands" checklist, so both always agree on what
+ * counts as one brand. */
+export function getUniqueBrands(categories: Category[]): Brand[] {
+  const byKey = new Map<string, string>();
+  for (const category of categories) {
+    for (const product of category.products) {
+      const label = product.name.trim();
+      if (!label) continue;
+      const key = label.toLowerCase();
+      if (!byKey.has(key)) byKey.set(key, label);
+    }
+  }
+  return [...byKey.entries()]
+    .map(([key, label]) => ({ key, label }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
